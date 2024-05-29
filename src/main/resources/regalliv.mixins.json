@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.quepierts.regalliv.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "refmap": "regalliV.refmap.json",
+  "mixins": [
+    "AbstractVillagerMixin",
+    "NameTagItemMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
