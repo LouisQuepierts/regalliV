@@ -24,7 +24,6 @@ public class Common {
             return;
 
         List<VillagerTrades.ItemListing> list = event.getTrades().get(5);
-        LogUtils.getLogger().info("List: {}", list.getClass().getName());
         List<VillagerTrades.ItemListing> newList = new ArrayList<>(list.size() + 1);
         newList.addAll(list);
         newList.add(new VillagerTrades.ItemListing() {

@@ -1,7 +1,5 @@
 package net.quepierts.regalliv.mixin;
 
-import com.mojang.logging.LogUtils;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
