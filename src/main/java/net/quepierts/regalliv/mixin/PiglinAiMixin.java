@@ -1,5 +1,7 @@
 package net.quepierts.regalliv.mixin;
 
+import com.mojang.logging.LogUtils;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -24,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Mixin(PiglinAi.class)
-public class PiglinAiMixin {
+public abstract class PiglinAiMixin {
     @Inject(
             method = "stopHoldingOffHandItem",
             at = @At("HEAD"),
@@ -40,14 +42,16 @@ public class PiglinAiMixin {
 
     @Inject(
             method = "wantsToPickup",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/monster/piglin/Piglin;canAddToInventory(Lnet/minecraft/world/item/ItemStack;)Z"
-            ),
-            cancellable = true)
+            at = @At(value = "HEAD"),
+            cancellable = true
+    )
     private static void wantsToPickupFlipped(Piglin piglin, ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
-        if (FlipUtil.isDinnerbone(piglin) && PiglinUtil.isAdmirableItem(itemStack)) {
-            cir.setReturnValue(piglin.getInventory().canAddItem(itemStack));
+        if (FlipUtil.isDinnerbone(piglin)) {
+            if (PiglinUtil.isAdmirableItemIgnoredCost(itemStack)) {
+                cir.setReturnValue(isNotHoldingLovedItemInOffHand(piglin));
+            } else if (isFood(itemStack)) {
+                cir.setReturnValue(!hasEatenRecently(piglin) && piglin.getInventory().canAddItem(itemStack));
+            }
             cir.cancel();
         }
     }
@@ -62,23 +66,27 @@ public class PiglinAiMixin {
             cancellable = true
     )
     private static void pickUpItemFlipped(Piglin piglin, ItemEntity entity, CallbackInfo ci) {
-        ItemStack itemstack = entity.getItem();
-        if (FlipUtil.isDinnerbone(piglin) && !isAdmiringItem(piglin) && PiglinUtil.isAdmirableItem(itemstack)) {
-            int cost = PiglinUtil.getItemCost(itemstack);
-            int count = itemstack.getCount();
+        if (FlipUtil.isDinnerbone(piglin)) {
+            ItemStack itemstack = entity.getItem();
+            if (!isAdmiringItem(piglin) && PiglinUtil.isAdmirableItem(itemstack)) {
+                int cost = PiglinUtil.getRandomCost(itemstack, piglin.getRandom());
 
-            if (cost == count) {
-                piglin.take(entity, count);
+                piglin.take(entity, cost);
                 itemstack = entity.getItem();
-                entity.discard();
-            } else {
-                piglin.take(entity, 1);
-                itemstack = removeOneItemFromItemEntity(entity);
-            }
+                ItemStack itemstack1 = itemstack.split(cost);
 
-            piglin.getBrain().eraseMemory(MemoryModuleType.TIME_TRYING_TO_REACH_ADMIRE_ITEM);
-            holdInOffhand(piglin, itemstack);
-            admireGoldItem(piglin);
+                if (itemstack.isEmpty()) {
+                    entity.discard();
+                } else {
+                    entity.setItem(itemstack);
+                }
+
+                itemstack = itemstack1;
+
+                piglin.getBrain().eraseMemory(MemoryModuleType.TIME_TRYING_TO_REACH_ADMIRE_ITEM);
+                holdInOffhand(piglin, itemstack);
+                admireGoldItem(piglin);
+            }
             ci.cancel();
         }
     }
@@ -98,7 +106,7 @@ public class PiglinAiMixin {
                 : itemstack.isPiglinCurrency();
 
         if (canAdmire) {
-            ItemStack itemstack1 = itemstack.split(dinnerbone ? PiglinUtil.getItemCost(itemstack) : 1);
+            ItemStack itemstack1 = itemstack.split(dinnerbone ? PiglinUtil.getRandomCost(itemstack, piglin.getRandom()) : 1);
             holdInOffhand(piglin, itemstack1);
             admireGoldItem(piglin);
             stopWalking(piglin);
@@ -117,6 +125,19 @@ public class PiglinAiMixin {
         boolean flag = !isAdmiringDisabled(piglin) && !isAdmiringItem(piglin) && piglin.isAdult();
         boolean dinnerbone = FlipUtil.isDinnerbone(piglin);
         return flag && dinnerbone ? PiglinUtil.isAdmirableItem(itemStack) : itemStack.isPiglinCurrency();
+    }
+
+    /**
+     * @author
+     * @reason
+     */
+    @Overwrite
+    private static boolean isNotHoldingLovedItemInOffHand(Piglin piglin) {
+        return piglin.getOffhandItem().isEmpty()
+                || (FlipUtil.isDinnerbone(piglin)
+                        ? !PiglinUtil.isAdmirableItem(piglin.getOffhandItem())
+                        : !isLovedItem(piglin.getOffhandItem())
+                );
     }
 
     @Shadow
@@ -142,7 +163,17 @@ public class PiglinAiMixin {
     private static void stopWalking(Piglin p_35007_) {}
 
     @Shadow
-    private static ItemStack removeOneItemFromItemEntity(ItemEntity p_34823_) {
-        return null;
+    protected static boolean isLovedItem(ItemStack p_149966_) {
+        return false;
+    }
+
+    @Shadow
+    private static boolean hasEatenRecently(Piglin p_35019_) {
+        return false;
+    }
+
+    @Shadow
+    private static boolean isFood(ItemStack p_149970_) {
+        return false;
     }
 }

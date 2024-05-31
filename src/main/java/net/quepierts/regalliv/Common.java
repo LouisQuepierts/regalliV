@@ -1,5 +1,6 @@
 package net.quepierts.regalliv;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.VillagerProfession;
@@ -15,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = Regalliv.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = Regalliv.MODID)
 public class Common {
     @SubscribeEvent
     public static void onCreativeTabBuildContents(VillagerTradesEvent event) {
@@ -23,6 +24,7 @@ public class Common {
             return;
 
         List<VillagerTrades.ItemListing> list = event.getTrades().get(5);
+        LogUtils.getLogger().info("List: {}", list.getClass().getName());
         List<VillagerTrades.ItemListing> newList = new ArrayList<>(list.size() + 1);
         newList.addAll(list);
         newList.add(new VillagerTrades.ItemListing() {

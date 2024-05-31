@@ -1,6 +1,7 @@
 package net.quepierts.regalliv.util;
 
 import com.google.common.collect.ImmutableMap;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Item;
@@ -21,7 +22,7 @@ public class PiglinUtil {
         if (predicate == null)
             return false;
 
-        return predicate.test(itemStack) && predicate.amount() <= itemStack.getCount();
+        return predicate.test(itemStack) && itemStack.getCount() >= predicate.min();
     }
 
     public static boolean isAdmirableItemIgnoredCost(ItemStack itemStack) {
@@ -35,7 +36,17 @@ public class PiglinUtil {
 
     public static int getItemCost(ItemStack itemStack) {
         ItemPredicate predicate = LOOT_ITEMS.get(itemStack.getItem());
-        return predicate == null ? 0 : predicate.amount();
+        return predicate == null ? 0 : predicate.min();
+    }
+
+    public static int getRandomCost(ItemStack itemStack, RandomSource random) {
+        ItemPredicate predicate = LOOT_ITEMS.get(itemStack.getItem());
+        if (predicate == null)
+            return 0;
+        if (predicate.min() == predicate.max())
+            return predicate.min();
+        return Math.min(random.nextInt(predicate.min(), predicate.max()), itemStack.getCount());
+
     }
 
     static {
@@ -44,25 +55,28 @@ public class PiglinUtil {
                 .put(Items.IRON_BOOTS, new PredicateHasEnchant(Items.IRON_BOOTS, Enchantments.SOUL_SPEED))
                 .put(Items.POTION, PiglinUtil::checkPotion)
                 .put(Items.SPLASH_POTION, PiglinUtil::checkSplashPotion)
-                .put(Items.IRON_NUGGET, new PredicateCountedItem(16))
-                .put(Items.ENDER_PEARL, new PredicateCountedItem(3))
-                .put(Items.STRING, new PredicateCountedItem(6))
-                .put(Items.QUARTZ, new PredicateCountedItem(8))
-                .put(Items.OBSIDIAN, new PredicateCountedItem(1))
-                .put(Items.CRYING_OBSIDIAN, new PredicateCountedItem(2))
-                .put(Items.FIRE_CHARGE, new PredicateCountedItem(1))
-                .put(Items.LEATHER, new PredicateCountedItem(3))
-                .put(Items.SOUL_SAND, new PredicateCountedItem(5))
-                .put(Items.NETHER_BRICK, new PredicateCountedItem(5))
-                .put(Items.SPECTRAL_ARROW, new PredicateCountedItem(9))
-                .put(Items.GRAVEL, new PredicateCountedItem(12))
-                .put(Items.BLACKSTONE, new PredicateCountedItem(12))
+                .put(Items.IRON_NUGGET, new PredicateCountedItem(10, 36))
+                .put(Items.ENDER_PEARL, new PredicateCountedItem(2, 4))
+                .put(Items.STRING, new PredicateCountedItem(3, 9))
+                .put(Items.QUARTZ, new PredicateCountedItem(5, 12))
+                .put(Items.OBSIDIAN, new PredicateCountedItem(1, 1))
+                .put(Items.CRYING_OBSIDIAN, new PredicateCountedItem(1, 3))
+                .put(Items.FIRE_CHARGE, new PredicateCountedItem(1, 1))
+                .put(Items.LEATHER, new PredicateCountedItem(2, 4))
+                .put(Items.SOUL_SAND, new PredicateCountedItem(2, 8))
+                .put(Items.NETHER_BRICK, new PredicateCountedItem(2, 8))
+                .put(Items.SPECTRAL_ARROW, new PredicateCountedItem(6, 12))
+                .put(Items.GRAVEL, new PredicateCountedItem(8, 16))
+                .put(Items.BLACKSTONE, new PredicateCountedItem(8, 16))
                 .build();
     }
 
     @FunctionalInterface
     private interface ItemPredicate {
-        default int amount() {
+        default int min() {
+            return 1;
+        }
+        default int max() {
             return 1;
         }
 
@@ -76,15 +90,20 @@ public class PiglinUtil {
         }
     }
 
-    private record PredicateCountedItem(int minimal) implements ItemPredicate {
+    private record PredicateCountedItem(int min, int max) implements ItemPredicate {
         @Override
         public boolean test(ItemStack itemStack) {
             return true;
         }
 
         @Override
-        public int amount() {
-            return minimal;
+        public int min() {
+            return min;
+        }
+
+        @Override
+        public int max() {
+            return max;
         }
     }
 
