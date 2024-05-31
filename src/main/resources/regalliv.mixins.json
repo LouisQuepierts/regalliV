@@ -6,7 +6,8 @@
   "refmap": "regalliV.refmap.json",
   "mixins": [
     "AbstractVillagerMixin",
-    "NameTagItemMixin"
+    "NameTagItemMixin",
+    "PiglinAiMixin"
   ],
   "client": [
   ],

@@ -3,11 +3,11 @@ package net.quepierts.regalliv;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.quepierts.regalliv.util.FlipUtil;
 
 public class EraserItem extends Item {
     public EraserItem(Properties p_41383_) {
@@ -19,8 +19,8 @@ public class EraserItem extends Item {
         if (!(entity instanceof Player)) {
             if (!player.level().isClientSide && entity.isAlive() && entity.hasCustomName()) {
                 if (entity instanceof AbstractVillager villager) {
-                    if (villager.getCustomName().getString().equals("Dinnerbone")) {
-                        Regalliv.flip(villager);
+                    if (villager.getName().getString().equals("Dinnerbone")) {
+                        FlipUtil.flip(villager);
                     }
                 }
 

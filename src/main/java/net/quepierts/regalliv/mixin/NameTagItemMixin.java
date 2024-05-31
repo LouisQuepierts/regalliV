@@ -7,9 +7,7 @@ import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.NameTagItem;
-import net.minecraft.world.item.trading.MerchantOffer;
-import net.minecraft.world.item.trading.MerchantOffers;
-import net.quepierts.regalliv.Regalliv;
+import net.quepierts.regalliv.util.FlipUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -28,11 +26,8 @@ public class NameTagItemMixin {
     )
     public void flipVillager(ItemStack stack, Player player, LivingEntity entity, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         if (entity instanceof AbstractVillager villager) {
-            if (!stack.getHoverName().getString().equals("Dinnerbone"))
-                return;
-
-            if (!entity.hasCustomName() || !entity.getCustomName().getString().equals("Dinnerbone")) {
-                Regalliv.flip(villager);
+            if (stack.getHoverName().getString().equals("Dinnerbone") != FlipUtil.isDinnerbone(entity)) {
+                FlipUtil.flip(villager);
             }
         }
     }
