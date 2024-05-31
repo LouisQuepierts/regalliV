@@ -34,11 +34,6 @@ public class PiglinUtil {
         return predicate.test(itemStack);
     }
 
-    public static int getItemCost(ItemStack itemStack) {
-        ItemPredicate predicate = LOOT_ITEMS.get(itemStack.getItem());
-        return predicate == null ? 0 : predicate.min();
-    }
-
     public static int getRandomCost(ItemStack itemStack, RandomSource random) {
         ItemPredicate predicate = LOOT_ITEMS.get(itemStack.getItem());
         if (predicate == null)

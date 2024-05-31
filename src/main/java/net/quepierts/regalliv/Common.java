@@ -1,6 +1,5 @@
 package net.quepierts.regalliv;
 
-import com.mojang.logging.LogUtils;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.VillagerProfession;

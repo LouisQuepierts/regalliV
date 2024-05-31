@@ -126,8 +126,8 @@ public abstract class PiglinAiMixin {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Louis_Quepierts
+     * @reason Flipped Items
      */
     @Overwrite
     private static boolean isNotHoldingLovedItemInOffHand(Piglin piglin) {
